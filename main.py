@@ -3,106 +3,114 @@ import pyttsx3
 import csv
 
 engine = pyttsx3.init()
+FILE_NAME = "partDatabase.csv"
 
 def speak(words):
     # Use this to add speech to your methods
     engine.say(words)
     engine.runAndWait()
 
-def removeParts():
-    #Most likely needs an index
-    speak("Remove a Part")
-    print("Remove") #add some code here remove what you want
-    return main()
-
-def addParts():
-    speak("Add a Part")
-    print("\nAdd a PC Part")
-
-    category = input(
-        "Enter PC part category (Power Supply, GPU, Motherboard, CPU, Ram): "
-    ).strip()
-
-    while category == "":
-        print("Category cannot be blank.")
-        category = input("Enter PC part category: ").strip()
-    match category.lower():
-        case "cpu":
-            example = "AMD Ryzen 5 7500F"
-        case "gpu":
-            example = "NVIDIA GeForce RTX 4060"
-        case "motherboard":
-            example = "Gigabyte B650 AORUS Elite AX"
-        case "power supply" | "powersupply" | "psu":
-            example = "Corsair RM750e"
-        case "ram":
-            example = "Corsair Vengeance 32GB DDR5"
-        case "storage" | "ssd" | "hdd":
-            example = "Samsung 990 PRO 1TB"
-        case _:
-            example = "brand and model"
-
-    name = input(
-        f"Enter component name (e.g., {example}): "
-    ).strip()
-
-    while name == "":
-        print("Component name cannot be blank.")
-        name = input("Enter component name: ").strip()
-
-    with open("partDatabase.csv", "a", newline="") as file:
+def writeParts(my_parts):
+    with open(FILE_NAME, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow([category, name])
+        writer.writerows(my_parts)
 
-    print(f"\nAdded: {category} - {name}\n")
-    speak(f"{name} has been added.")
+def readParts():
+    my_parts = []
+    try:
+        with open(FILE_NAME, "r", newline="") as file:
+            reader = csv.reader(file)
+            for line in reader:
+                my_parts.append(line)
+    except FileNotFoundError:
+        writeParts(my_parts)
+    return my_parts
+    
+def removeParts(my_pc_parts):
+    speak("Remove a Part")
+    part_number = int(input("Enter Part Number to Remove: "))
+    if part_number < 1 or part_number > len(my_pc_parts):
+        print("Invalid part number. \n")
+    else:
+        my_part = my_pc_parts.pop(part_number - 1)
+        writeParts(my_pc_parts)
+        print(f"{my_part[0]} was removed.\n")
 
-    return main()
+def addParts(my_pc_parts):
+    speak("Add a Part")
+    name = input("Name of Part: ")
+    cost = input("Cost of Part: ")
+    quantity = input("Quantity: ")
+    my_parts = [name, cost, quantity]
+    my_pc_parts.append(my_parts)
+    writeParts(my_pc_parts)
+    print(f"{my_parts[0]} was added.\n")
 
-def listParts():
-    # Needs CSV
+def listParts(my_pc_parts):
     speak("Listing all Parts")
-    print("List")  #add some code here remove what you want
-    return main()
+    if len(my_pc_parts) == 0:
+        print("There are no PC Parts in the list.\n")
+    else:
+        i = 1
+        for my_part in my_pc_parts:
+            print(i, my_part[0], my_part[1], my_part[2])
+            i = i + 1
+        print()
 
-def updatePartListing():
-    # Most likely needs cost,name,ram_storage,quantity
+def updatePartListing(my_pc_parts):
     speak("Update your Parts")
-    print("Update") #add some code here remove what you want
-    return main()
+    part_number = int(input("Enter Part Number to Update: "))
+    if part_number < 1 or part_number > len(my_pc_parts):
+        print("Your Part number is invalid.\n")
+    else:
+        name = input("New Name of Part: ")
+        cost = input("New Cost of Part: ")
+        quantity = input("New Quantity: ")
+        my_parts = [name, cost, quantity]
+        my_pc_parts[part_number - 1] = my_parts
+        writeParts(my_pc_parts)
+        print(f"{my_parts[0]} was updated.\n")
+    
 
 def listCommands():
     print(f"list - List Parts\n"
           f"update - Update Parts\n"
           f"add - Add Parts\n"
-          f"remove - Remove Parts\n")
+          f"remove - Remove Parts\n"
+          f"exit - Exit the Program\n")
 
 def main():
     print(f"PC Part Manager:\n")
     listCommands()
     speak("PC Part Manager")
+    my_pc_parts = readParts()
 
-    entry = input("Enter in a command: ")
-    match entry.lower():
-        #Added shortened alternatives for faster testing.
-        case "add" | "a":
-            addParts()
+    while True:
+        entry = input("Enter in a command: ").strip().lower()
 
-        case "list" | "l":
-            listParts()
+        match entry.lower():
+            #Added shortened alternatives for faster testing.
+            case "add" | "a":
+                addParts(my_pc_parts)
 
-        case "update" | "u":
-            updatePartListing()
+            case "list" | "l":
+                listParts(my_pc_parts)
 
-        case "remove" | "r":
-            removeParts()
+            case "update" | "u":
+                updatePartListing(my_pc_parts)
 
-        case _:
-            # Made error red showing in terminal
-            print(f"Invalid command: \033[31m{entry}\033[0m:\n"
-                  f"Try Again\n\n\n")
-            speak(f"{entry} is an invalid command. Try Again ")
-            return main()
+            case "remove" | "r":
+                removeParts(my_pc_parts)
+            case "exit" | "e":
+                speak("GoodBye!")
+                print("GoodBye!")
+                break
+
+            case _:
+                # Made error red showing in terminal
+                print(f"Invalid command: \033[31m{entry}\033[0m:\n"
+                    f"Try Again\n\n\n")
+                speak(f"{entry} is an invalid command. Try Again ")
 
 
 if __name__ == '__main__':
