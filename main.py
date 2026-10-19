@@ -38,13 +38,37 @@ def removeParts(my_pc_parts):
 
 def addParts(my_pc_parts):
     speak("Add a Part")
-    name = input("Name of Part: ")
-    cost = input("Cost of Part: ")
-    quantity = input("Quantity: ")
-    my_parts = [name, cost, quantity]
-    my_pc_parts.append(my_parts)
+    
+    category = input("Enter PC part category: ").strip()
+    while category == "":
+        print("Category cannot be blank.")
+        category = input("Enter PC part category: ").strip()
+
+    match category.lower():
+        case "cpu":
+            example = "AMD Ryzen 5 7600X"
+        case "gpu":
+            example = "NVIDIA GeForce RTX 4060"
+        case "motherboard":
+            example = "Gigabyte B650 AORUS Elite AX"
+        case "power supply" | "powersupply" | "psu":
+            example = "Corsair RM750e"
+        case "ram":
+            example = "Corsair Vengeance 32GB DDR5"
+        case "storage" | "ssd" | "hdd":
+            example = "Samsung 990 PRO 1TB"
+        case _:
+            example = "brand and model"
+
+    name = input(f"Enter component name (e.g., {example}): ").strip()
+    cost = input("Cost of Part: ").strip()
+    quantity = input("Quantity: ").strip()
+    
+    # Stored as [category, name, cost, quantity]
+    new_part = [category, name, cost, quantity]
+    my_pc_parts.append(new_part)
     writeParts(my_pc_parts)
-    print(f"{my_parts[0]} was added.\n")
+    print(f"{name} ({category}) was added.\n")
 
 def listParts(my_pc_parts):
     speak("Listing all Parts")
@@ -53,7 +77,12 @@ def listParts(my_pc_parts):
     else:
         i = 1
         for my_part in my_pc_parts:
-            print(i, my_part[0], my_part[1], my_part[2])
+            # Check if the row has the new 4-item format or old 3-item format
+            if len(my_part) >= 4:
+                print(f"{i}. [{my_part[0]}] {my_part[1]} | Cost: ${my_part[2]} | Qty: {my_part[3]}")
+            else:
+                # Fallback for old data in your CSV
+                print(f"{i}. [Uncategorized] {my_part[0]} | Cost: ${my_part[1]} | Qty: {my_part[2]}")
             i = i + 1
         print()
 
@@ -63,13 +92,15 @@ def updatePartListing(my_pc_parts):
     if part_number < 1 or part_number > len(my_pc_parts):
         print("Your Part number is invalid.\n")
     else:
-        name = input("New Name of Part: ")
-        cost = input("New Cost of Part: ")
-        quantity = input("New Quantity: ")
-        my_parts = [name, cost, quantity]
-        my_pc_parts[part_number - 1] = my_parts
+        category = input("New Category: ").strip()
+        name = input("New Name of Part: ").strip()
+        cost = input("New Cost of Part: ").strip()
+        quantity = input("New Quantity: ").strip()
+        
+        updated_part = [category, name, cost, quantity]
+        my_pc_parts[part_number - 1] = updated_part
         writeParts(my_pc_parts)
-        print(f"{my_parts[0]} was updated.\n")
+        print(f"{name} was updated.\n")
     
 
 def listCommands():
